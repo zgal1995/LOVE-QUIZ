@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#24081a">
+<title>מאמיש, מה קרה?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Suez+One&family=Heebo:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-1:#2b0a1f;
+    --bg-2:#190b28;
+    --card-bg-1:#47192f;
+    --card-bg-2:#3a1327;
+    --cream:#f5e6d3;
+    --cream-dim:#dcc2a8;
+    --pink-light:#ffb6c8;
+    --pink-antique:#d99aa3;
+    --gold:#d4af6a;
+    --gold-soft:#e9cd93;
+    --shadow:0 16px 36px rgba(10,2,8,.5);
+    --font-title:'Suez One', serif;
+    --font-body:'Heebo', sans-serif;
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family:var(--font-body);
+    color:var(--cream);
+    background:
+      radial-gradient(120% 90% at 50% -10%, #3a1230 0%, transparent 55%),
+      linear-gradient(165deg, var(--bg-1) 0%, var(--bg-2) 100%);
+    overflow-x:hidden;
+    -webkit-tap-highlight-color:transparent;
+  }
+
+  button{ font:inherit; }
+
+  /* ---------- floating background hearts ---------- */
+  .hearts-bg{
+    position:fixed;
+    inset:0;
+    overflow:hidden;
+    pointer-events:none;
+    z-index:0;
+  }
+  .float-heart{
+    position:absolute;
+    bottom:-10vh;
+    opacity:0;
+    animation-name:floatUp;
+    animation-timing-function:ease-in-out;
+    animation-iteration-count:infinite;
+    will-change:transform,opacity;
+  }
+  @keyframes floatUp{
+    0%   { transform:translateY(0) scale(var(--s,1)); opacity:0; }
+    10%  { opacity:var(--o,.5); }
+    88%  { opacity:var(--o,.5); }
+    100% { transform:translateY(-118vh) scale(var(--s,1)); opacity:0; }
+  }
+
+  /* ---------- layout ---------- */
+  .app{
+    position:relative;
+    z-index:1;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:32px 20px calc(32px + env(safe-area-inset-bottom));
+  }
+
+  .screen{
+    display:none;
+    width:100%;
+    max-width:440px;
+  }
+  .screen.active{ display:block; }
+
+  /* ---------- intro screen ---------- */
+  .intro-content{
+    text-align:center;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:18px;
+  }
+  .title-row{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+  }
+  .title{
+    font-family:var(--font-title);
+    font-weight:400;
+    font-size:clamp(30px,8vw,42px);
+    color:var(--cream);
+    margin:0;
+    letter-spacing:.5px;
+  }
+  .heart-pulse{
+    display:inline-flex;
+    transform-origin:center;
+    animation:heartbeat 1.6s ease-in-out infinite;
+  }
+  @keyframes heartbeat{
+    0%,100%{ transform:scale(1); }
+    22%{ transform:scale(1.22); }
+    38%{ transform:scale(1); }
+    55%{ transform:scale(1.14); }
+    72%{ transform:scale(1); }
+  }
+  .subtitle{
+    font-size:17px;
+    color:var(--cream-dim);
+    margin:0 0 6px;
+  }
+
+  .length-select{
+    display:flex;
+    gap:14px;
+    margin:6px 0 10px;
+  }
+  .len-btn{
+    width:58px;
+    height:58px;
+    border-radius:50%;
+    background:rgba(255,255,255,.06);
+    color:var(--cream);
+    border:1.5px solid rgba(245,230,211,.25);
+    font-family:var(--font-body);
+    font-weight:700;
+    font-size:20px;
+    cursor:pointer;
+    transition:transform .15s ease, background .2s ease, box-shadow .2s ease;
+  }
+  .len-btn:active{ transform:scale(.94); }
+  .len-btn.selected{
+    background:linear-gradient(135deg,var(--gold-soft),var(--gold));
+    color:#3a2410;
+    border-color:transparent;
+    box-shadow:0 8px 20px rgba(212,175,106,.35);
+  }
+
+  /* ---------- buttons ---------- */
+  .btn{
+    min-height:56px;
+    border-radius:999px;
+    padding:0 30px;
+    font-weight:700;
+    font-size:18px;
+    border:none;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    transition:transform .15s ease, opacity .2s ease, box-shadow .2s ease;
+  }
+  .btn:active{ transform:scale(.96); }
+  .btn-primary{
+    background:linear-gradient(135deg,#c9607a,#8e3a56);
+    color:var(--cream);
+    box-shadow:var(--shadow);
+  }
+  .btn-ghost{
+    background:rgba(255,255,255,.05);
+    color:var(--cream-dim);
+    border:1.5px solid rgba(245,230,211,.3);
+  }
+  .btn[disabled]{
+    opacity:.32;
+    pointer-events:none;
+  }
+  .btn-wide{ width:100%; max-width:280px; }
+
+  /* ---------- round screen ---------- */
+  .progress-hearts{
+    display:flex;
+    justify-content:center;
+    gap:8px;
+    margin-bottom:22px;
+  }
+  .progress-heart{ display:inline-flex; }
+
+  .card-wrap{ perspective:800px; }
+  .card{
+    position:relative;
+    background:linear-gradient(160deg,var(--card-bg-1),var(--card-bg-2));
+    border-radius:32px;
+    box-shadow:var(--shadow);
+    padding:46px 26px;
+    min-height:260px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    overflow:hidden;
+    transition:opacity .2s ease, transform .2s ease;
+  }
+  .card.card--fade{
+    opacity:0;
+    transform:translateY(8px) scale(.98);
+  }
+  .card.card--suggestion{
+    border:2px solid var(--gold);
+    box-shadow:var(--shadow), 0 0 26px rgba(212,175,106,.18);
+  }
+  .card-label{
+    font-family:var(--font-title);
+    font-weight:400;
+    font-size:16px;
+    color:var(--gold-soft);
+    letter-spacing:.5px;
+    display:flex;
+    align-items:center;
+    gap:7px;
+    margin-bottom:16px;
+  }
+  .card-text{
+    font-family:var(--font-body);
+    font-weight:500;
+    font-size:clamp(28px,6.5vw,34px);
+    line-height:1.55;
+    color:var(--cream);
+    margin:0;
+  }
+  .corner-heart{
+    position:absolute;
+  }
+  .corner-heart--a{ inset-inline-start:16px; top:16px; }
+  .corner-heart--b{ inset-inline-end:16px; bottom:16px; }
+
+  .round-actions{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:14px;
+    margin-top:26px;
+  }
+
+  /* ---------- end screen ---------- */
+  .hearts-rain{
+    position:absolute;
+    inset:0;
+    overflow:hidden;
+    pointer-events:none;
+  }
+  .end-content{
+    position:relative;
+    text-align:center;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:30px;
+    padding-top:40px;
+  }
+  .end-title{
+    font-family:var(--font-title);
+    font-weight:400;
+    font-size:clamp(30px,8vw,40px);
+    line-height:1.4;
+    color:var(--cream);
+    margin:0;
+  }
+  #screen-end{ position:relative; }
+
+  .rain-heart{
+    position:absolute;
+    top:-8vh;
+    opacity:0;
+    animation-name:fallDown;
+    animation-timing-function:ease-in;
+    animation-fill-mode:forwards;
+  }
+  @keyframes fallDown{
+    0%   { transform:translateY(0); opacity:0; }
+    10%  { opacity:1; }
+    100% { transform:translateY(105vh); opacity:0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hearts-bg" id="heartsBg"></div>
+
+<div class="app">
+
+  <section id="screen-intro" class="screen active">
+    <div class="intro-content">
+      <div class="title-row">
+        <h1 class="title">מאמיש, מה קרה?</h1>
+        <span class="heart-pulse" id="titleHeart" aria-hidden="true"></span>
+      </div>
+      <p class="subtitle">שאלות קלילות, בלי לחץ</p>
+
+      <div class="length-select" id="lengthSelect">
+        <button class="len-btn" data-len="3">3</button>
+        <button class="len-btn selected" data-len="5">5</button>
+        <button class="len-btn" data-len="8">8</button>
+      </div>
+
+      <button id="startBtn" class="btn btn-primary btn-wide">בואי נתחיל</button>
+    </div>
+  </section>
+
+  <section id="screen-round" class="screen">
+    <div class="progress-hearts" id="progressHearts"></div>
+    <div class="card-wrap">
+      <div class="card" id="card"></div>
+    </div>
+    <div class="round-actions" id="actionsWrap"></div>
+  </section>
+
+  <section id="screen-end" class="screen">
+    <div class="hearts-rain" id="heartsRain"></div>
+    <div class="end-content">
+      <h2 class="end-title">טוב שחזרנו<br>להיות ביחד</h2>
+      <button id="restartBtn" class="btn btn-primary btn-wide">עוד סיבוב</button>
+    </div>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ================= data ================= */
+
+  var QUESTIONS = [
+    "מה היה הדבר הכי טעים שאכלת מאז שלא התראינו?",
+    "על איזו ארוחה שלנו חלמת?",
+    "מה הדבר הכי מוזר שאכלת בשבועות האחרונים?",
+    "איזה לילה היה הכי גרוע מבחינת שינה?",
+    "איזה הרגל חדש וקטן פיתחת בינתיים?",
+    "מה הדבר הכי מצחיק שקרה לך, ושרצית לספר לי ולא היה מי שישמע?",
+    "איזו שיחה מוזרה ניהלת, ועדיין מעסיקה אותך?",
+    "מה הדבר הראשון שבא לך לעשות כשנהיה שוב ביחד בבית?",
+    "באיזה רגע הכי התגעגעת?",
+    "איזה דבר קטן מהבית חסר לך הכי הרבה?",
+    "איזה שיר התנגן לך בראש בלי הפסקה?",
+    "איזו סדרה או סרט ראית, ושהיית רוצה שנראה ביחד?",
+    "מה קנית לעצמך בזמן האחרון?",
+    "איזה דבר קטן בבית התקלקל בזמן האחרון?",
+    "מה הדבר הכי חמוד או הכי מצחיק שג'מה עשתה?",
+    "מה הדבר הכי מצחיק שהבת שלנו עשתה או אמרה בזמן האחרון?",
+    "מה היה הרגע הכי גאה שלך בזמן האחרון?",
+    "מה הפתיע אותך בשגרה היומיומית שלך?",
+    "מה הדבר שהיית מוותר עליו בשמחה מהשגרה שלך?",
+    "מה למדת על עצמך בזמן האחרון, בקטן?",
+    "מי התקשר, כתב או הפתיע אותך, והכי שימח?",
+    "איזו הודעה בוואטסאפ הצחיקה אותך הכי הרבה?",
+    "איזה חלום מוזר חלמת?",
+    "מה הייתה המחשבה הראשונה שלך כשנפגשנו היום?",
+    "אם יש לנו מחר יום חופשי בלי שום התחייבות, מה עושים?",
+    "איזה דבר קטן מהבית לא העריכת עד שלא היה לך?",
+    "מה היה הרגע הכי מביך שלך לאחרונה?",
+    "לאיזה מקום בא לך לחזור ביחד בקרוב?",
+    "איזה שיר בא לך לשים עכשיו ברכב?",
+    "מה הדבר הכי טוב שקרה לך בזמן שלא התראינו?"
+  ];
+
+  var SUGGESTIONS = [
+    "אמרו זה לזה משהו שלא אמרתם כל הזמן הזה.",
+    "שירו יחד שורה אחת מאיזה שיר אהוב.",
+    "ספרו זה לזה מה הדבר הראשון שתעשו כשתגיעו הביתה.",
+    "אמרו מחמאה קטנה על משהו שלא קשור למראה.",
+    "נסו להיזכר ביחד בדייט הראשון תוך 30 שניות.",
+    "תנו לשניכם כינוי חדש לשארית הלילה."
+  ];
+
+  var HEART_COLORS = ['#ffb6c8', '#d99aa3', '#d4af6a'];
+
+  /* ================= heart svg helper ================= */
+
+  function heartSVG(opts){
+    opts = opts || {};
+    var size = opts.size || 20;
+    var fill = opts.fill || '#ffb6c8';
+    var opacity = (opts.opacity === undefined) ? 1 : opts.opacity;
+    return '<svg width="' + size + '" height="' + Math.round(size * 0.9) +
+      '" viewBox="0 0 32 29" style="opacity:' + opacity + '" aria-hidden="true">' +
+      '<path fill="' + fill + '" d="M23.6 0c-3.4 0-6.3 2-7.6 4.9C14.7 2 11.8 0 8.4 0 3.8 0 0 3.8 0 8.4c0 9.4 9.5 14 16 20.6 6.5-6.6 16-11.2 16-20.6C32 3.8 28.2 0 23.6 0z"/>' +
+      '</svg>';
+  }
+
+  /* ================= shuffle / decks ================= */
+
+  function shuffle(arr){
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--){
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  var questionDeck = [];
+  var suggestionDeck = [];
+
+  function refillQuestionDeck(){ questionDeck = shuffle(QUESTIONS); }
+  function refillSuggestionDeck(){ suggestionDeck = shuffle(SUGGESTIONS); }
+
+  function drawQuestion(exclude){
+    exclude = exclude || new Set();
+    var attempts = 0;
+    var maxAttempts = QUESTIONS.length * 3;
+    while (attempts < maxAttempts){
+      if (questionDeck.length === 0) refillQuestionDeck();
+      var q = questionDeck.shift();
+      if (!exclude.has(q)) return q;
+      attempts++;
+    }
+    return QUESTIONS[0];
+  }
+
+  function drawSuggestion(){
+    if (suggestionDeck.length === 0) refillSuggestionDeck();
+    return suggestionDeck.shift();
+  }
+
+  /* ================= state ================= */
+
+  var roundLen = 5;
+  var cards = [];
+  var cardIndex = 0;
+  var roundQuestionSet = new Set();
+  var otherUsed = false;
+  var started = false;
+  var wakeLock = null;
+
+  /* ================= floating background hearts ================= */
+
+  function initFloatingHearts(){
+    var wrap = document.getElementById('heartsBg');
+    var count = 10;
+    var html = '';
+    for (var i = 0; i < count; i++){
+      var left = Math.random() * 100;
+      var size = 14 + Math.random() * 16;
+      var duration = 20 + Math.random() * 14;
+      var delay = -Math.random() * duration;
+      var opacity = 0.25 + Math.random() * 0.3;
+      var scale = 0.8 + Math.random() * 0.6;
+      var color = HEART_COLORS[Math.floor(Math.random() * HEART_COLORS.length)];
+      html += '<span class="float-heart" style="left:' + left + '%;' +
+        '--s:' + scale.toFixed(2) + ';--o:' + opacity.toFixed(2) + ';' +
+        'animation-duration:' + duration.toFixed(1) + 's;' +
+        'animation-delay:' + delay.toFixed(1) + 's;">' +
+        heartSVG({ size: size, fill: color, opacity: 1 }) + '</span>';
+    }
+    wrap.innerHTML = html;
+  }
+
+  /* ================= wake lock ================= */
+
+  function requestWakeLock(){
+    try {
+      if ('wakeLock' in navigator){
+        navigator.wakeLock.request('screen').then(function(lock){
+          wakeLock = lock;
+        }).catch(function(){});
+      }
+    } catch (e) {}
+  }
+
+  document.addEventListener('visibilitychange', function(){
+    if (document.visibilityState === 'visible' && started){
+      requestWakeLock();
+    }
+  });
+
+  /* ================= screens ================= */
+
+  function showScreen(id){
+    var screens = document.querySelectorAll('.screen');
+    for (var i = 0; i < screens.length; i++){
+      screens[i].classList.toggle('active', screens[i].id === id);
+    }
+  }
+
+  /* ================= length select ================= */
+
+  document.getElementById('lengthSelect').addEventListener('click', function(e){
+    var btn = e.target.closest('.len-btn');
+    if (!btn) return;
+    roundLen = parseInt(btn.getAttribute('data-len'), 10);
+    var buttons = document.querySelectorAll('.len-btn');
+    for (var i = 0; i < buttons.length; i++){
+      buttons[i].classList.toggle('selected', buttons[i] === btn);
+    }
+  });
+
+  /* ================= building a round ================= */
+
+  function buildRound(){
+    var numQuestions = roundLen - 1;
+    var qs = [];
+    var exclude = new Set();
+    for (var i = 0; i < numQuestions; i++){
+      var q = drawQuestion(exclude);
+      exclude.add(q);
+      qs.push(q);
+    }
+    roundQuestionSet = exclude;
+
+    var suggestion = drawSuggestion();
+    var sIdx = 1 + Math.floor(Math.random() * (roundLen - 2));
+
+    cards = [];
+    var qi = 0;
+    for (var pos = 0; pos < roundLen; pos++){
+      if (pos === sIdx){
+        cards.push({ type: 'suggestion', text: suggestion });
+      } else {
+        cards.push({ type: 'question', text: qs[qi++] });
+      }
+    }
+
+    cardIndex = 0;
+    otherUsed = false;
+  }
+
+  /* ================= rendering ================= */
+
+  function cornerHearts(){
+    return '<span class="corner-heart corner-heart--a">' +
+        heartSVG({ size: 16, fill: '#d4af6a', opacity: 0.32 }) + '</span>' +
+      '<span class="corner-heart corner-heart--b">' +
+        heartSVG({ size: 16, fill: '#ffb6c8', opacity: 0.28 }) + '</span>';
+  }
+
+  function cardInnerHTML(card){
+    if (card.type === 'suggestion'){
+      return cornerHearts() +
+        '<div class="card-label">' + heartSVG({ size: 15, fill: '#d4af6a', opacity: 1 }) +
+        ' הצעה קטנה</div>' +
+        '<p class="card-text">' + card.text + '</p>';
+    }
+    return cornerHearts() + '<p class="card-text">' + card.text + '</p>';
+  }
+
+  function renderProgress(){
+    var wrap = document.getElementById('progressHearts');
+    var html = '';
+    for (var i = 0; i < cards.length; i++){
+      var filled = i <= cardIndex;
+      html += '<span class="progress-heart">' +
+        heartSVG({
+          size: 15,
+          fill: filled ? '#d4af6a' : 'rgba(245,230,211,.18)',
+          opacity: 1
+        }) + '</span>';
+    }
+    wrap.innerHTML = html;
+  }
+
+  function renderActions(){
+    var wrap = document.getElementById('actionsWrap');
+    var card = cards[cardIndex];
+    if (card.type === 'suggestion'){
+      wrap.innerHTML =
+        '<button id="skipBtn" class="btn btn-ghost">נדלג</button>' +
+        '<button id="yesBtn" class="btn btn-primary">בא לנו</button>';
+      document.getElementById('skipBtn').addEventListener('click', goNext);
+      document.getElementById('yesBtn').addEventListener('click', goNext);
+    } else {
+      wrap.innerHTML =
+        '<button id="otherBtn" class="btn btn-ghost"' + (otherUsed ? ' disabled' : '') + '>שאלה אחרת</button>' +
+        '<button id="nextBtn" class="btn btn-primary">הבאה</button>';
+      document.getElementById('otherBtn').addEventListener('click', swapQuestion);
+      document.getElementById('nextBtn').addEventListener('click', goNext);
+    }
+  }
+
+  function renderCard(withTransition){
+    var el = document.getElementById('card');
+    var card = cards[cardIndex];
+
+    function apply(){
+      el.classList.toggle('card--suggestion', card.type === 'suggestion');
+      el.innerHTML = cardInnerHTML(card);
+      renderActions();
+      renderProgress();
+    }
+
+    if (withTransition){
+      el.classList.add('card--fade');
+      setTimeout(function(){
+        apply();
+        el.classList.remove('card--fade');
+      }, 180);
+    } else {
+      apply();
+    }
+  }
+
+  function swapQuestion(){
+    if (otherUsed) return;
+    var current = cards[cardIndex];
+    if (current.type !== 'question') return;
+    var newQ = drawQuestion(roundQuestionSet);
+    roundQuestionSet.add(newQ);
+    cards[cardIndex] = { type: 'question', text: newQ };
+    otherUsed = true;
+    renderCard(true);
+  }
+
+  function goNext(){
+    if (cardIndex >= cards.length - 1){
+      showEnd();
+      return;
+    }
+    cardIndex++;
+    renderCard(true);
+  }
+
+  /* ================= end screen ================= */
+
+  function spawnHeartsRain(){
+    var wrap = document.getElementById('heartsRain');
+    var count = 16;
+    var html = '';
+    for (var i = 0; i < count; i++){
+      var left = Math.random() * 100;
+      var size = 14 + Math.random() * 14;
+      var duration = 2.2 + Math.random() * 1.2;
+      var delay = Math.random() * 0.6;
+      var color = HEART_COLORS[Math.floor(Math.random() * HEART_COLORS.length)];
+      html += '<span class="rain-heart" style="left:' + left + '%;' +
+        'animation-duration:' + duration.toFixed(2) + 's;' +
+        'animation-delay:' + delay.toFixed(2) + 's;">' +
+        heartSVG({ size: size, fill: color, opacity: 1 }) + '</span>';
+    }
+    wrap.innerHTML = html;
+  }
+
+  function showEnd(){
+    showScreen('screen-end');
+    spawnHeartsRain();
+  }
+
+  /* ================= start / restart ================= */
+
+  document.getElementById('startBtn').addEventListener('click', function(){
+    started = true;
+    requestWakeLock();
+    buildRound();
+    showScreen('screen-round');
+    renderCard(false);
+  });
+
+  document.getElementById('restartBtn').addEventListener('click', function(){
+    requestWakeLock();
+    buildRound();
+    showScreen('screen-round');
+    renderCard(false);
+  });
+
+  /* ================= init ================= */
+
+  document.getElementById('titleHeart').innerHTML = heartSVG({ size: 30, fill: '#ffb6c8', opacity: 1 });
+  refillQuestionDeck();
+  refillSuggestionDeck();
+  initFloatingHearts();
+
+})();
+</script>
+
+</body>
+</html>
